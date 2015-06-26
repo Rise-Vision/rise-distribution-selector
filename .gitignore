@@ -1,4 +1,4 @@
+bower_components
+node_modules
 .idea
-*.iml
-node_modules/
-bower_components/
+web-component-rise-distribution.iml

@@ -1,0 +1,119 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="rise-bs-modal.html">
+
+
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+    <rise-distribution></rise-distribution>
+
+@demo
+-->
+<dom-module id="rise-distribution">
+
+  <template>
+    <div class="content-box-editable remove-bottom clickable" on-tap="openDialog">
+      <div class="label label-tag">4 displays</div>
+    </div>
+
+    <rise-bs-modal open="{{ dialogOpen }}" on-backgroundtap="closeDialog">
+      <div class="modal-header ng-scope">
+        <button type="button" class="close" on-tap="closeDialog" aria-hidden="true">
+          <i class="fa fa-times"></i>
+        </button>
+        <h3 class="modal-title">Edit Distribution</h3>
+      </div>
+      <div class="modal-body ng-scope">
+
+        <div class="form-group">
+          <label class="control-label"><input ng-model="checked" ng-init="checked=true" type="checkbox" class="add-right ng-pristine ng-valid"> All Displays</label>
+        </div>
+
+        <div class="input-group add-bottom">
+          <span class="input-group-addon"><i class="fa fa-search fa-lg"></i></span>
+          <input type="text" class="form-control" placeholder="Search Displays">
+        </div>
+
+        <div class="content-box scrollable-list">
+          <table class="table-2 table-hover" ng-class="{ 'animated fadeIn table-selector multiple-selector': !checked}">
+            <thead>
+            <tr>
+              <th>Name</th>
+              <th>Address</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr on-tap="select">
+              <td>Display</td>
+              <td><span class="text-muted">9788 Old Leaf Swale, Papa, Hawaii, 96852</span></td>
+            </tr>
+            </tbody>
+          </table>
+        </div><!--content-box-->
+      </div>
+      <div class="modal-footer ng-scope">
+        <button class="btn-primary btn" on-tap="closeDialog">Apply <i class="fa fa-check icon-right"></i></button>
+        <button class="btn btn-default" on-tap="closeDialog">Cancel <i class="fa fa-times icon-right"></i></button>
+      </div>
+    </rise-bs-modal>
+
+    <content></content>
+  </template>
+
+</dom-module>
+
+<script>
+
+  Polymer({
+
+    is: 'rise-distribution',
+
+    properties: {
+      companyId: String
+    },
+
+    // Element Lifecycle
+
+    ready: function() {
+      // `ready` is called after all elements have been configured, but
+      // propagates bottom-up. This element's children are ready, but parents
+      // are not.
+      //
+      // This is the point where you should make modifications to the DOM (when
+      // necessary), or kick off any processes the element wants to perform.
+    },
+
+    attached: function() {
+      // `attached` fires once the element and its parents have been inserted
+      // into a document.
+      //
+      // This is a good place to perform any work related to your element's
+      // visual state or active behavior (measuring sizes, beginning animations,
+      // loading resources, etc).
+    },
+
+    detached: function() {
+      // The analog to `attached`, `detached` fires when the element has been
+      // removed from a document.
+      //
+      // Use this to clean up anything you did in `attached`.
+    },
+
+    // Element Behavior
+
+    openDialog: function () {
+      this.dialogOpen = true;
+    },
+    closeDialog: function () {
+      this.dialogOpen = false;
+    },
+
+    select: function () {
+      alert("id");
+    }
+
+  });
+
+</script>
