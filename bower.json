@@ -21,8 +21,10 @@
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#^1.0.0",
-    "google-apis": "GoogleWebComponents/google-apis",
-    "rv-common-style": "https://github.com/Rise-Vision/common-style.git"
+    "google-apis": "GoogleWebComponents/google-apis#^1.0.2",
+    "rv-common-style": "https://github.com/Rise-Vision/common-style.git",
+    "spin.js": "2.3.1",
+    "underscore": "~1.8.3"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
