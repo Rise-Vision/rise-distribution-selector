@@ -1,8 +1,9 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="rise-bs-modal.html">
 <link rel="import" href="rise-spin.html">
-<link rel="import" href="../google-apis/google-client-loader.html">
-<script src="../underscore/underscore.js"></script>
+<link rel="import" href="rise-search.html">
+<link rel="import" href="rise-api-list.html">
+
 
 
 <!--
@@ -18,14 +19,10 @@ Example:
 
   <template>
     <div class="content-box-editable remove-bottom clickable" on-tap="openDialog">
-      <div class="label label-tag">4 displays</div>
+      <div class="label label-tag"><span>{{ numberOfDisplays }}</span><span> Displays</span></div>
     </div>
 
-     <span>{{test}}</span><br>
-
-    <google-client-loader api-root="https://rvaserver2.appspot.com/_ah/api" id="coreAPI"
-                          name="core"
-                          version="v1"></google-client-loader>
+    <rise-api-list id="riseApiList" entity="display" parameters="{{ parameters }}"></rise-api-list>
 
     <rise-bs-modal open="{{ dialogOpen }}" on-backgroundtap="closeDialog">
       <div class="modal-header">
@@ -37,16 +34,13 @@ Example:
       <div class="modal-body">
 
         <div class="form-group">
-          <label class="control-label"><input type="checkbox" class="add-right" on-tap="selectAll"> All Displays</label>
+          <label class="control-label"><input id="allDisplaysCheckbox" type="checkbox" on-change="selectAllHandler" class="add-right" /> All Displays</label>
         </div>
 
-        <div class="input-group add-bottom">
-          <span class="input-group-addon"><i class="fa fa-search fa-lg"></i></span>
-          <input type="text" class="form-control" placeholder="Search Displays">
-        </div>
+        <rise-search id="riseSearch" placeholder="Search Displays" fields="{{ searchFields }}"></rise-search>
 
         <div class="content-box scrollable-list">
-          <table class="table-2 table-hover animated fadeIn table-selector multiple-selector">
+          <table id="displaysTable" class="table-2 table-hover animated fadeIn table-selector multiple-selector">
             <thead>
             <tr>
               <th>Name</th>
@@ -68,7 +62,7 @@ Example:
       </div>
       <div class="modal-footer">
         <button class="btn-primary btn" on-tap="apply">Apply <i class="fa fa-check icon-right"></i></button>
-        <button class="btn btn-default" on-tap="closeDialog">Cancel <i class="fa fa-times icon-right"></i></button>
+        <button class="btn btn-default" on-tap="cancel">Cancel <i class="fa fa-times icon-right"></i></button>
       </div>
     </rise-bs-modal>
 
@@ -84,7 +78,7 @@ Example:
     is: 'rise-distribution',
 
     properties: {
-      company: {
+      companyId: {
         type: String,
         reflectToAttribute: true
       },
@@ -95,6 +89,11 @@ Example:
         },
         reflectToAttribute: true
       },
+      distributeToAll: {
+        type: Boolean,
+        value: false
+      },
+
       appId: String,
 
       apiRoot: {
@@ -113,6 +112,11 @@ Example:
       // This is the point where you should make modifications to the DOM (when
       // necessary), or kick off any processes the element wants to perform.
 
+      /*this.$.riseSearch.addEventListener('do-search', function (event) {
+        this._query = event.detail.query;
+      }, this);*/
+
+
     },
 
     attached: function() {
@@ -122,9 +126,25 @@ Example:
       // This is a good place to perform any work related to your element's
       // visual state or active behavior (measuring sizes, beginning animations,
       // loading resources, etc).
-
-
+      this._init();
     },
+
+    _init: function() {
+      this.$.allDisplaysCheckbox.checked = false;
+      this.displays = [];
+      this._selectedItems = new Set(),
+      this.loading = false;
+      this.parameters = {};
+      this.$.riseSearch.cleanField();
+      this._query = '';
+      this._cursor = '';
+      this._count = 200;
+      this._sort = 'name asc';
+      this._fields = '';
+      this.searchFields = ['name', 'address'];
+      this.numberOfDisplays = this.distribution.length;
+    },
+
 
     detached: function() {
       // The analog to `attached`, `detached` fires when the element has been
@@ -134,70 +154,150 @@ Example:
     },
 
     // Element Behavior
-    displays: [],
-    loading: false,
 
-    _load: function () {
-      console.log("Calling display list");
 
-      var coreAPI = document.getElementById('coreAPI');
-      var request = coreAPI.api.display.list({
-        companyId: this.companyId
-      });
-      this.loading = true;
-      request.execute(this._handleResponse.bind(this));
+    listeners: {
+      'do-search': '_searchHandler',
+      'rise-api-list': '_apiListHandler',
+      'rise-api-list-error': '_apiListErrorHandler'
     },
 
-    _handleResponse: function (resp) {
-      console.debug("Api response: ",resp);
-      if(resp.result){
-        this.displays = resp.items;
+    _searchHandler: function (event) {
+      this._query = event.detail.query;
+      this._restrictSearchByCompanyId();
+      this._load();
+    },
 
-        this.async(this._showCurrentDistribution.bind(this));
-      }else{
-        console.debug("Displays could not be retrieved");
-      }
+    _apiListHandler: function (event) {
+      this.displays = event.detail.items;
+      this.async(this._showCurrentDistribution.bind(this));
+      this.loading = false;
+    },
+    _apiListErrorHandler: function (event) {
+      this.displays = [];
       this.loading = false;
     },
 
-    _showCurrentDistribution: function () {
+    _restrictSearchByCompanyId: function () {
+      this._query = this._query + " AND " + this.companyId;
+    },
 
-      if(this.displays.length !== this.distribution.length){
-        _.each(this.distribution, this._selectItemForCurrentDistribution.bind(this));
+    _load: function () {
+      console.log("Calling display list");
+      this._buildParameters();
+      this.loading = true;
+      this.$.riseApiList.run();
+    },
+
+    _buildParameters: function() {
+      console.log(this.companyId);
+      if(!this.companyId){
+        throw "Error: Company Id is required."
+      }else{
+        this.parameters['companyId'] = this.companyId;
+      }
+      if(this._query) {
+        this.parameters['search'] = this._query;
+      }
+      if(this._cursor) {
+        this.parameters['cursor'] = this._cursor;
+      }
+      if(this._count) {
+        this.parameters['count'] = this._count;
+      }
+      if(this._sort) {
+        this.parameters['sort'] = this._sort;
+      }
+      if(this._fields) {
+        this.parameters['fields'] = this._fields;
       }
     },
 
-    _selectItemForCurrentDistribution: function (item) {
-      this.toggleClass('active', true, this.$$("[id='"+item+"']"));
+    _showCurrentDistribution: function () {
+      var checkbox = this.$.allDisplaysCheckbox;
+
+      checkbox.checked = this.distributeToAll;
+      this._toogleVisibilityOfItemCheckboxes(!checkbox.checked);
+      if(!this.distributeToAll){
+        for (var id of this.distribution) {
+          this._toogleDisplaySelection(id, true);
+        }
+      }
+    },
+
+    _toogleVisibilityOfItemCheckboxes: function (state) {
+      var displaysTable = this.$.displaysTable;
+      this.toggleClass('animated', state, displaysTable);
+      this.toggleClass('fadeIn', state, displaysTable);
+      this.toggleClass('table-selector', state, displaysTable);
+      this.toggleClass('multiple-selector', state, displaysTable);
     },
 
     openDialog: function () {
       console.debug("Open Dialog");
-      this.displays = [];
+      this._init();
       this._load();
       this.dialogOpen = true;
     },
+
+
     closeDialog: function () {
+      console.log(this.distribution);
+      this.numberOfDisplays = this.distribution.length;
+      console.log(this.numberOfDisplays);
       this.dialogOpen = false;
     },
 
+
     apply: function () {
-      console.log(this.distribution);
+      this.distribution = [];
+      if(!this.distributeToAll) {
+
+        this._selectedItems.forEach(function (element) {
+          this.distribution = this.distribution.concat(element);
+        }, this);
+      }
+
       this.closeDialog();
     },
 
-    select: function (event) {
-      var currentTarget = event.currentTarget;
-      var classList = currentTarget.classList;
+    cancel: function () {
+      this._selectedItems.clear();
+      this.closeDialog();
+    },
 
-      if(classList.contains("active")){
-        classList.remove("active")
-        this.distribution = _.without(this.distribution, currentTarget.id);
+    selectAllHandler: function (event) {
+      var checkbox = event.currentTarget;
+      this.distributeToAll = checkbox.checked;
+      this._toogleVisibilityOfItemCheckboxes(!checkbox.checked);
+    },
+
+    _toogleAllDisplaysSelection: function (state) {
+      for (var display of this.displays) {
+        this._toogleDisplaySelection(display.id, state);
+      }
+    },
+
+    _toogleDisplaySelection: function (id, state) {
+      if(state){
+        this._selectedItems.add(id);
+
       }else{
-        this.distribution = this.distribution.concat(currentTarget.id);
-        classList.add("active")
+        this._selectedItems.delete(id);
+      }
+      this.toggleClass('active', state, this.$$("[id='"+id+"']"));
+    },
+
+    select: function (event) {
+
+      if(!this.$.allDisplaysCheckbox.checked){
+        var currentTarget = event.currentTarget;
+        var isActive = currentTarget.classList.contains("active");
+
+        this._toogleDisplaySelection(currentTarget.id, !isActive);
       }
     }
+
   });
 
 </script>

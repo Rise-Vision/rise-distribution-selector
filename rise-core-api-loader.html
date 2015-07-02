@@ -1,0 +1,40 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../google-apis/google-client-loader.html">
+
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+    <rise-core-api-loader></rise-core-api-loader>
+
+@demo
+-->
+<dom-module id="rise-core-api-loader">
+
+  <template>
+    <google-client-loader api-root="{{ apiRoot }}" app-id="{{ appId }}" id="coreAPI"
+                          name="core"
+                          version="v1"></google-client-loader>
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'rise-core-api-loader',
+
+    properties: {
+      apiRoot: {
+        type: String,
+        value: 'https://rvaserver2.appspot.com/_ah/api'
+      },
+      appId: String
+    },
+
+    get api() {
+      return this.$.coreAPI.api;
+    }
+
+  });
+</script>
