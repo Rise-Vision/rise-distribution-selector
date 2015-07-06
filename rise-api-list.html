@@ -1,0 +1,67 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="rise-core-api-loader.html">
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+    <rise-api-list></rise-api-list>
+
+@demo
+-->
+<dom-module id="rise-api-list">
+
+  <template>
+    <rise-core-api-loader id="riseCoreApiLoader"></rise-core-api-loader>
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'rise-api-list',
+
+    properties: {
+      entity: String,
+      parameters: Object,
+
+      /**
+       * Name of the event fired when request is OK
+       */
+      successEventName: {
+        type: String,
+        value: 'rise-api-list'
+      },
+      /**
+       * Name of the event fired when there is an error when making the request.
+       */
+      errorEventName: {
+        type: String,
+        value: 'rise-api-list-error'
+      }
+    },
+
+    get run() {
+      return this._run;
+    },
+
+    _run: function () {
+      console.debug("Calling list");
+      var coreAPI = this.$.riseCoreApiLoader;
+      var request = coreAPI.api[this.entity].list(this.parameters);
+
+      request.execute(this._handleResponse.bind(this));
+    },
+
+    _handleResponse: function (response) {
+      console.debug("Api response: ",response);
+      if(response.result){
+        var items = response.items;
+        this.fire(this.successEventName, { 'items' : items });
+      }else{
+        console.debug("Items could not be retrieved");
+        this.fire(this.errorEventName, { 'response' : response });
+      }
+    }
+  });
+</script>
