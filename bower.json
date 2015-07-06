@@ -22,15 +22,12 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^1.0.0",
     "google-apis": "GoogleWebComponents/google-apis#^1.0.2",
-    "rv-common-style": "https://github.com/Rise-Vision/common-style.git#feature/schedule",
+    "rv-common-style": "https://github.com/Rise-Vision/common-style.git#master",
     "spin.js": "2.3.1",
     "underscore": "~1.8.3"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
     "web-component-tester": "*"
-  },
-  "resolutions": {
-    "rv-common-style": "1.2.5"
   }
 }
