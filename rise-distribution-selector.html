@@ -2,7 +2,7 @@
 <link rel="import" href="rise-bs-modal.html">
 <link rel="import" href="rise-spin.html">
 <link rel="import" href="rise-search.html">
-<link rel="import" href="rise-api-list.html">
+<link rel="import" href="../rise-apis/rise-apis.html">
 
 
 
@@ -11,7 +11,10 @@ An element providing a solution to no problem in particular.
 
 Example:
 
-    <rise-distribution-selector></rise-distribution-selector>
+    <rise-distribution-selector company-id="12312123"
+                                distribution='[]'
+                                distribute-to-all='true'>
+        </rise-distribution-selector>
 
 @demo
 -->
@@ -22,7 +25,7 @@ Example:
       <div class="label label-tag"><span>{{ numberOfDisplays }}</span><span> Displays</span></div>
     </div>
 
-    <rise-api-list id="riseApiList" entity="display" parameters="{{ parameters }}"></rise-api-list>
+    <rise-api-method id="riseApiList" entity="display" method="list" parameters="{{ parameters }}"></rise-api-method>
 
     <rise-bs-modal open="{{ dialogOpen }}" on-backgroundtap="closeDialog">
       <div class="modal-header">
@@ -158,8 +161,8 @@ Example:
 
     listeners: {
       'do-search': '_searchHandler',
-      'rise-api-list': '_apiListHandler',
-      'rise-api-list-error': '_apiListErrorHandler'
+      'rise-api-method': '_apiListHandler',
+      'rise-api-method-error': '_apiListErrorHandler'
     },
 
     _searchHandler: function (event) {
@@ -169,7 +172,7 @@ Example:
     },
 
     _apiListHandler: function (event) {
-      this.displays = event.detail.items;
+      this.displays = event.detail.resource;
       this.async(this._showCurrentDistribution.bind(this));
       this.loading = false;
     },

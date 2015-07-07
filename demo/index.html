@@ -14,53 +14,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
     <title>rise-distribution-selector Demo</title>
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <link rel="import" href="../../google-signin/google-signin.html">
     <link rel="import" href="../rise-distribution-selector.html">
     <link href="../../rv-common-style/dist/css/rise.min.css" rel="stylesheet" type="text/css">
 
-    <script>
-      var clientId = '1039315471777-oqrb8m2qfkrfp2hv2f9dta5jf72ob72p.apps.googleusercontent.com';
-      var scopes = 'https://www.googleapis.com/auth/plus.me';
 
-      function checkAuth() {
-        gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, handleAuthResult);
-      }
-
-      function handleAuthResult(authResult) {
-        var authorizeButton = document.getElementById('authorize-button');
-        if (authResult && !authResult.error) {
-          authorizeButton.style.visibility = 'hidden';
-          gapi.client.load('oauth2', 'v2', makeOAuth2Request);
-        } else {
-          authorizeButton.style.visibility = '';
-          authorizeButton.onclick = handleAuthClick;
-        }
-      }
-
-      function handleAuthClick(event) {
-        gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: false}, handleAuthResult);
-        return false;
-      }
-
-      function makeOAuth2Request() {
-        console.log('make request to oauth2');
-        var request = gapi.client.oauth2.userinfo.get();
-
-        request.execute(function (resp) {
-          if (!resp.code) {
-            console.log(resp);
-          }
-          else {
-            console.log(resp);
-          }
-        });
-      }
-    </script>
   </head>
   <body>
 
     <p>An example of <code>&lt;rise-distribution-selector&gt;</code>:</p>
 
-    <button id="authorize-button" onclick="handleAuthClick()">Sign In</button>
+    <template is="dom-bind">
+      <p> You must signin before running!!</p>
+      <google-signin
+        client-id="1039315471777-oqrb8m2qfkrfp2hv2f9dta5jf72ob72p.apps.googleusercontent.com"
+      </google-signin>
+    </template>
+
     <div class="container">
       <div class="form-group">
         <label class="control-label">Distribution</label>

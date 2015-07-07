@@ -22,6 +22,8 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^1.0.0",
     "google-apis": "GoogleWebComponents/google-apis#^1.0.2",
+    "google-signin": "GoogleWebComponents/google-signin#^1.0.2",
+    "rise-apis": "https://github.com/Rise-Vision/rise-apis.git",
     "rv-common-style": "https://github.com/Rise-Vision/common-style.git#master",
     "spin.js": "2.3.1",
     "underscore": "~1.8.3"
