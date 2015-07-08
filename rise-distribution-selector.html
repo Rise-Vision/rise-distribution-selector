@@ -22,7 +22,7 @@ Example:
 
   <template>
     <div class="content-box-editable remove-bottom clickable" on-tap="openDialog">
-      <div class="label label-tag"><span>{{ numberOfDisplays }}</span><span> Displays</span></div>
+      <div class="label label-tag"><span>{{ getNumberOfDisplays(distribution, distributeToAll) }}</span></div>
     </div>
 
     <rise-api-method id="riseApiList" entity="display" method="list" parameters="{{ parameters }}"></rise-api-method>
@@ -75,7 +75,7 @@ Example:
 </dom-module>
 
 <script>
-
+HTMLImports.whenReady(function() {
   Polymer({
 
     is: 'rise-distribution-selector',
@@ -87,14 +87,12 @@ Example:
       },
       distribution: {
         type: Object,
-        value: function () {
-          return {};
-        },
         reflectToAttribute: true
       },
       distributeToAll: {
         type: Boolean,
-        value: false
+        value: false,
+        reflectToAttribute: true
       },
 
       appId: String,
@@ -105,24 +103,43 @@ Example:
       }
     },
 
+    deserialize: function (value, type) {
+      if (type == Boolean) {
+        //Hack for angular biding
+        if(value.indexOf("{{") === -1){
+          return value == 'false' ? false : true;
+        }else{
+          return value;
+        }
+
+      } else {
+        return Polymer.Base.deserialize(value, type);
+      }
+    },
+    serialize: function (value) {
+      if (typeof value == 'boolean') {
+        return value.toString();
+      } else {
+        return Polymer.Base.serialize(value);
+      }
+    },
+
     // Element Lifecycle
 
-    ready: function() {
+    ready: function () {
       // `ready` is called after all elements have been configured, but
       // propagates bottom-up. This element's children are ready, but parents
       // are not.
       //
       // This is the point where you should make modifications to the DOM (when
       // necessary), or kick off any processes the element wants to perform.
-
       /*this.$.riseSearch.addEventListener('do-search', function (event) {
         this._query = event.detail.query;
       }, this);*/
 
-
     },
 
-    attached: function() {
+    attached: function () {
       // `attached` fires once the element and its parents have been inserted
       // into a document.
       //
@@ -132,7 +149,7 @@ Example:
       this._init();
     },
 
-    _init: function() {
+    _init: function () {
       this.$.allDisplaysCheckbox.checked = false;
       this.displays = [];
       this._selectedItems = new Set(),
@@ -145,11 +162,10 @@ Example:
       this._sort = 'name asc';
       this._fields = '';
       this.searchFields = ['name', 'address'];
-      this.numberOfDisplays = this.distribution.length;
     },
 
 
-    detached: function() {
+    detached: function () {
       // The analog to `attached`, `detached` fires when the element has been
       // removed from a document.
       //
@@ -158,6 +174,21 @@ Example:
 
     // Element Behavior
 
+    getNumberOfDisplays: function (distribution, distributeToAll) {
+      var numberOfDisplays = distribution.length;
+      var message = numberOfDisplays;
+      if(distributeToAll) {
+        message = "All Displays";
+      } else {
+        if(numberOfDisplays <= 1){
+          message += " Display";
+        }else {
+          message += " Displays";
+        }
+      }
+
+      return message;
+    },
 
     listeners: {
       'do-search': '_searchHandler',
@@ -186,14 +217,13 @@ Example:
     },
 
     _load: function () {
-      console.log("Calling display list");
+      console.debug("Calling display list");
       this._buildParameters();
       this.loading = true;
       this.$.riseApiList.run();
     },
 
     _buildParameters: function() {
-      console.log(this.companyId);
       if(!this.companyId){
         throw "Error: Company Id is required."
       }else{
@@ -222,7 +252,8 @@ Example:
       checkbox.checked = this.distributeToAll;
       this._toogleVisibilityOfItemCheckboxes(!checkbox.checked);
       if(!this.distributeToAll){
-        for (var id of this.distribution) {
+        for (var id of this.
+          distribution) {
           this._toogleDisplaySelection(id, true);
         }
       }
@@ -245,9 +276,9 @@ Example:
 
 
     closeDialog: function () {
-      console.log(this.distribution);
+      console.debug('Distribution',this.distribution);
+      console.debug('distributeToAll',this.distributeToAll);
       this.numberOfDisplays = this.distribution.length;
-      console.log(this.numberOfDisplays);
       this.dialogOpen = false;
     },
 
@@ -275,20 +306,14 @@ Example:
       this._toogleVisibilityOfItemCheckboxes(!checkbox.checked);
     },
 
-    _toogleAllDisplaysSelection: function (state) {
-      for (var display of this.displays) {
-        this._toogleDisplaySelection(display.id, state);
-      }
-    },
-
     _toogleDisplaySelection: function (id, state) {
       if(state){
         this._selectedItems.add(id);
 
-      }else{
+      }else {
         this._selectedItems.delete(id);
       }
-      this.toggleClass('active', state, this.$$("[id='"+id+"']"));
+      this.toggleClass('active', state, this.$$("[id='"+id+ "']"));
     },
 
     select: function (event) {
@@ -302,5 +327,6 @@ Example:
     }
 
   });
+});
 
 </script>
