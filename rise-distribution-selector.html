@@ -105,8 +105,9 @@ HTMLImports.whenReady(function() {
 
     deserialize: function (value, type) {
       if (type == Boolean) {
-        //Hack for angular biding
-        if(value.indexOf("{{") === -1){
+        //Hack for angular binding
+        var _match = value.match(/\{\{\s*([\.\w]+)\s*\}\}/);
+        if(!_match){
           return value == 'false' ? false : true;
         }else{
           return value;
