@@ -21,51 +21,53 @@ Example:
 <dom-module id="rise-distribution-selector">
 
   <template>
-    <div class="content-box-editable remove-bottom clickable" on-tap="openDialog">
-      <div class="label label-tag"><span>{{ getNumberOfDisplays(distribution, distributeToAll) }}</span></div>
+    <div id="distributionField" class="content-box-editable remove-bottom clickable" on-tap="openDialog">
+      <div class="label label-tag"><span id="distributionFieldText">{{ getNumberOfDisplays(distribution, distributeToAll) }}</span></div>
     </div>
 
     <rise-api-method id="riseApiList" entity="display" method="list" parameters="{{ parameters }}"></rise-api-method>
 
     <rise-bs-modal open="{{ dialogOpen }}" on-backgroundtap="closeDialog">
-      <div class="modal-header">
-        <button type="button" class="close" on-tap="closeDialog" aria-hidden="true">
-          <i class="fa fa-times"></i>
-        </button>
-        <h3 class="modal-title">Edit Distribution</h3>
-      </div>
-      <div class="modal-body">
-
-        <div class="form-group">
-          <label class="control-label"><input id="allDisplaysCheckbox" type="checkbox" on-change="selectAllHandler" class="add-right" /> All Displays</label>
+      <div id="distributionModal">
+        <div class="modal-header">
+          <button type="button" class="close" on-tap="closeDialog" aria-hidden="true">
+            <i class="fa fa-times"></i>
+          </button>
+          <h3 class="modal-title">Edit Distribution</h3>
         </div>
+        <div class="modal-body">
 
-        <rise-search id="riseSearch" placeholder="Search Displays" fields="{{ searchFields }}"></rise-search>
+          <div class="form-group">
+            <label class="control-label"><input id="allDisplaysCheckbox" type="checkbox" on-change="selectAllHandler" class="add-right" /> All Displays</label>
+          </div>
 
-        <div class="content-box scrollable-list">
-          <table id="displaysTable" class="table-2 table-hover animated fadeIn table-selector multiple-selector">
-            <thead>
-            <tr>
-              <th>Name</th>
-              <th>Address</th>
-            </tr>
-            </thead>
-            <tbody>
-            <rise-spin show="{{ loading }}"></rise-spin>
-            <template is="dom-repeat" items="{{displays}}">
-              <tr on-tap="select" id="{{ item.id }}">
-                <td>{{item.name}}</td>
-                <td><span class="text-muted">{{item.address}}</span></td>
+          <rise-search id="riseSearch" placeholder="Search Displays" fields="{{ searchFields }}"></rise-search>
+
+          <div class="content-box scrollable-list">
+            <table id="displaysTable" class="table-2 table-hover animated fadeIn table-selector multiple-selector">
+              <thead>
+              <tr>
+                <th>Name</th>
+                <th>Address</th>
               </tr>
-            </template>
+              </thead>
+              <tbody>
+              <rise-spin show="{{ loading }}"></rise-spin>
+              <template is="dom-repeat" items="{{displays}}">
+                <tr on-tap="select" id="{{ item.id }}" class="display">
+                  <td>{{item.name}}</td>
+                  <td><span class="text-muted">{{item.address}}</span></td>
+                </tr>
+              </template>
 
-            </tbody>
-          </table>
-        </div><!--content-box-->
-      </div>
-      <div class="modal-footer">
-        <button class="btn-primary btn" on-tap="apply">Apply <i class="fa fa-check icon-right"></i></button>
-        <button class="btn btn-default" on-tap="cancel">Cancel <i class="fa fa-times icon-right"></i></button>
+              </tbody>
+            </table>
+          </div><!--content-box-->
+        </div>
+        <div class="modal-footer">
+          <button id="applyButton" class="btn-primary btn" on-tap="apply">Apply <i class="fa fa-check icon-right"></i></button>
+          <button id="cancelButton"  class="btn btn-default" on-tap="cancel">Cancel <i class="fa fa-times icon-right"></i></button>
+        </div>
       </div>
     </rise-bs-modal>
 
@@ -87,6 +89,7 @@ HTMLImports.whenReady(function() {
       },
       distribution: {
         type: Object,
+        value: [],
         reflectToAttribute: true
       },
       distributeToAll: {
