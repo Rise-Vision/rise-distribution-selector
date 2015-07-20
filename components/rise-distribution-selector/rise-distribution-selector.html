@@ -1,0 +1,336 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="rise-bs-modal.html">
+<link rel="import" href="rise-spin.html">
+<link rel="import" href="rise-search.html">
+<link rel="import" href="../rise-apis/rise-apis.html">
+
+
+
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+    <rise-distribution-selector company-id="12312123"
+                                distribution='[]'
+                                distribute-to-all='true'>
+        </rise-distribution-selector>
+
+@demo
+-->
+<dom-module id="rise-distribution-selector">
+
+  <template>
+    <div id="distributionField" class="content-box-editable remove-bottom clickable" on-tap="openDialog">
+      <div class="label label-tag"><span id="distributionFieldText">{{ getNumberOfDisplays(distribution, distributeToAll) }}</span></div>
+    </div>
+
+    <rise-api-method id="riseApiList" entity="display" method="list" parameters="{{ parameters }}"></rise-api-method>
+
+    <rise-bs-modal open="{{ dialogOpen }}" on-backgroundtap="closeDialog">
+      <div id="distributionModal">
+        <div class="modal-header">
+          <button type="button" class="close" on-tap="closeDialog" aria-hidden="true">
+            <i class="fa fa-times"></i>
+          </button>
+          <h3 class="modal-title">Edit Distribution</h3>
+        </div>
+        <div class="modal-body">
+
+          <div class="form-group">
+            <label class="control-label"><input id="allDisplaysCheckbox" type="checkbox" on-change="selectAllHandler" class="add-right" /> All Displays</label>
+          </div>
+
+          <rise-search id="riseSearch" placeholder="Search Displays" fields="{{ searchFields }}"></rise-search>
+
+          <div class="content-box scrollable-list">
+            <table id="displaysTable" class="table-2 table-hover animated fadeIn table-selector multiple-selector">
+              <thead>
+              <tr>
+                <th>Name</th>
+                <th>Address</th>
+              </tr>
+              </thead>
+              <tbody>
+              <rise-spin show="{{ loading }}"></rise-spin>
+              <template is="dom-repeat" items="{{displays}}">
+                <tr on-tap="select" id="{{ item.id }}" class="display">
+                  <td>{{item.name}}</td>
+                  <td><span class="text-muted">{{item.address}}</span></td>
+                </tr>
+              </template>
+
+              </tbody>
+            </table>
+          </div><!--content-box-->
+        </div>
+        <div class="modal-footer">
+          <button id="applyButton" class="btn-primary btn" on-tap="apply">Apply <i class="fa fa-check icon-right"></i></button>
+          <button id="cancelButton"  class="btn btn-default" on-tap="cancel">Cancel <i class="fa fa-times icon-right"></i></button>
+        </div>
+      </div>
+    </rise-bs-modal>
+
+    <content></content>
+  </template>
+
+</dom-module>
+
+<script>
+HTMLImports.whenReady(function() {
+  Polymer({
+
+    is: 'rise-distribution-selector',
+
+    properties: {
+      companyId: {
+        type: String,
+        reflectToAttribute: true
+      },
+      distribution: {
+        type: Object,
+        value: [],
+        reflectToAttribute: true
+      },
+      distributeToAll: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true
+      },
+
+      appId: String,
+
+      apiRoot: {
+        type: String,
+        value: "https://rvaserver2.appspot.com/_ah/api"
+      }
+    },
+
+    deserialize: function (value, type) {
+      if (type == Boolean) {
+        //Hack for angular binding
+        var _match = value.match(/\{\{\s*([\.\w]+)\s*\}\}/);
+        if(!_match){
+          return value == 'false' ? false : true;
+        }else{
+          return value;
+        }
+
+      } else {
+        return Polymer.Base.deserialize(value, type);
+      }
+    },
+    serialize: function (value) {
+      if (typeof value == 'boolean') {
+        return value.toString();
+      } else {
+        return Polymer.Base.serialize(value);
+      }
+    },
+
+    // Element Lifecycle
+
+    ready: function () {
+      // `ready` is called after all elements have been configured, but
+      // propagates bottom-up. This element's children are ready, but parents
+      // are not.
+      //
+      // This is the point where you should make modifications to the DOM (when
+      // necessary), or kick off any processes the element wants to perform.
+      /*this.$.riseSearch.addEventListener('do-search', function (event) {
+        this._query = event.detail.query;
+      }, this);*/
+
+    },
+
+    attached: function () {
+      // `attached` fires once the element and its parents have been inserted
+      // into a document.
+      //
+      // This is a good place to perform any work related to your element's
+      // visual state or active behavior (measuring sizes, beginning animations,
+      // loading resources, etc).
+      this._init();
+    },
+
+    _init: function () {
+      this.$.allDisplaysCheckbox.checked = false;
+      this.displays = [];
+      this._selectedItems = new Set(),
+      this.loading = false;
+      this.parameters = {};
+      this.$.riseSearch.cleanField();
+      this._query = '';
+      this._cursor = '';
+      this._count = 200;
+      this._sort = 'name asc';
+      this._fields = '';
+      this.searchFields = ['name', 'address'];
+    },
+
+
+    detached: function () {
+      // The analog to `attached`, `detached` fires when the element has been
+      // removed from a document.
+      //
+      // Use this to clean up anything you did in `attached`.
+    },
+
+    // Element Behavior
+
+    getNumberOfDisplays: function (distribution, distributeToAll) {
+      var numberOfDisplays = distribution.length;
+      var message = numberOfDisplays;
+      if(distributeToAll) {
+        message = "All Displays";
+      } else {
+        if(numberOfDisplays <= 1){
+          message += " Display";
+        }else {
+          message += " Displays";
+        }
+      }
+
+      return message;
+    },
+
+    listeners: {
+      'do-search': '_searchHandler',
+      'rise-api-method': '_apiListHandler',
+      'rise-api-method-error': '_apiListErrorHandler'
+    },
+
+    _searchHandler: function (event) {
+      this._query = event.detail.query;
+      this._restrictSearchByCompanyId();
+      this._load();
+    },
+
+    _apiListHandler: function (event) {
+      this.displays = event.detail.resource;
+      this.async(this._showCurrentDistribution.bind(this));
+      this.loading = false;
+    },
+    _apiListErrorHandler: function (event) {
+      this.displays = [];
+      this.loading = false;
+    },
+
+    _restrictSearchByCompanyId: function () {
+      this._query = this._query + " AND " + this.companyId;
+    },
+
+    _load: function () {
+      console.debug("Calling display list");
+      this._buildParameters();
+      this.loading = true;
+      this.$.riseApiList.run();
+    },
+
+    _buildParameters: function() {
+      if(!this.companyId){
+        throw "Error: Company Id is required."
+      }else{
+        this.parameters['companyId'] = this.companyId;
+      }
+      if(this._query) {
+        this.parameters['search'] = this._query;
+      }
+      if(this._cursor) {
+        this.parameters['cursor'] = this._cursor;
+      }
+      if(this._count) {
+        this.parameters['count'] = this._count;
+      }
+      if(this._sort) {
+        this.parameters['sort'] = this._sort;
+      }
+      if(this._fields) {
+        this.parameters['fields'] = this._fields;
+      }
+    },
+
+    _showCurrentDistribution: function () {
+      var checkbox = this.$.allDisplaysCheckbox;
+
+      checkbox.checked = this.distributeToAll;
+      this._toogleVisibilityOfItemCheckboxes(!checkbox.checked);
+      if(!this.distributeToAll){
+        for (var id of this.
+          distribution) {
+          this._toogleDisplaySelection(id, true);
+        }
+      }
+    },
+
+    _toogleVisibilityOfItemCheckboxes: function (state) {
+      var displaysTable = this.$.displaysTable;
+      this.toggleClass('animated', state, displaysTable);
+      this.toggleClass('fadeIn', state, displaysTable);
+      this.toggleClass('table-selector', state, displaysTable);
+      this.toggleClass('multiple-selector', state, displaysTable);
+    },
+
+    openDialog: function () {
+      console.debug("Open Dialog");
+      this._init();
+      this._load();
+      this.dialogOpen = true;
+    },
+
+
+    closeDialog: function () {
+      console.debug('Distribution',this.distribution);
+      console.debug('distributeToAll',this.distributeToAll);
+      this.numberOfDisplays = this.distribution.length;
+      this.dialogOpen = false;
+    },
+
+
+    apply: function () {
+      this.distribution = [];
+      if(!this.distributeToAll) {
+
+        this._selectedItems.forEach(function (element) {
+          this.distribution = this.distribution.concat(element);
+        }, this);
+      }
+
+      this.closeDialog();
+    },
+
+    cancel: function () {
+      this._selectedItems.clear();
+      this.closeDialog();
+    },
+
+    selectAllHandler: function (event) {
+      var checkbox = event.currentTarget;
+      this.distributeToAll = checkbox.checked;
+      this._toogleVisibilityOfItemCheckboxes(!checkbox.checked);
+    },
+
+    _toogleDisplaySelection: function (id, state) {
+      if(state){
+        this._selectedItems.add(id);
+
+      }else {
+        this._selectedItems.delete(id);
+      }
+      this.toggleClass('active', state, this.$$("[id='"+id+ "']"));
+    },
+
+    select: function (event) {
+
+      if(!this.$.allDisplaysCheckbox.checked){
+        var currentTarget = event.currentTarget;
+        var isActive = currentTarget.classList.contains("active");
+
+        this._toogleDisplaySelection(currentTarget.id, !isActive);
+      }
+    }
+
+  });
+});
+
+</script>

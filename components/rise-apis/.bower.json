@@ -1,0 +1,43 @@
+{
+  "name": "rise-apis",
+  "authors": [
+    "Anonymous <anonymous@example.com>"
+  ],
+  "description": "An element providing a solution to no problem in particular.",
+  "keywords": [
+    "web-component",
+    "web-components",
+    "polymer",
+    "seed"
+  ],
+  "main": "rise-apis.html",
+  "license": "http://polymer.github.io/LICENSE.txt",
+  "homepage": "https://github.com/<USERNAME>/seed-element/",
+  "ignore": [
+    "/.*",
+    "/test/",
+    "/demo/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "google-apis": "GoogleWebComponents/google-apis#^1.0.2",
+    "google-signin": "GoogleWebComponents/google-signin#^1.0.2"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "*",
+    "rv-common-style": "https://github.com/Rise-Vision/common-style.git#master"
+  },
+  "resolutions": {
+    "rv-common-style": "master"
+  },
+  "_release": "7a3f674d74",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "7a3f674d7410730d0bd6c25eec59b790f302d227"
+  },
+  "_source": "https://github.com/Rise-Vision/rise-apis.git",
+  "_target": "*",
+  "_originalSource": "https://github.com/Rise-Vision/rise-apis.git"
+}

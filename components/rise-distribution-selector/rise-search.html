@@ -1,0 +1,61 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+    <rise-search></rise-search>
+
+@demo
+-->
+<dom-module id="rise-search">
+
+  <template>
+    <div class="input-group add-bottom">
+      <span class="input-group-addon"><i class="fa fa-search fa-lg"></i></span>
+      <input id="searchInput" type="search" class="form-control" placeholder="{{placeholder}}" incremental="incremental" on-search="doSearch">
+      <span class="input-group-addon ng-click-active" on-tap="reset"><i class="fa fa-times"></i></span>
+    </div>
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'rise-search',
+
+    properties: {
+      placeholder: String,
+      fields: Array
+    },
+
+    doSearch: function () {
+      console.debug("Do search called");
+      var query = this._createSearchQuery(this.$.searchInput.value);
+      this.fire('do-search', { 'query': query });
+    },
+
+    reset: function () {
+      this.cleanField();
+      this.doSearch();
+    },
+
+    cleanField: function () {
+      this.$.searchInput.value = '';
+    },
+
+    _createSearchQuery: function (inputQuery) {
+      var query = '';
+
+      for (var i in this.fields) {
+        query += 'OR ' + this.fields[i] + ':~\'' + inputQuery + '\' ';
+      }
+
+      query = query.substring(3);
+
+      return query.trim();
+    }
+
+  });
+</script>

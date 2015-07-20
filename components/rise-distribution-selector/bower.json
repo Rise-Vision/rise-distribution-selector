@@ -1,0 +1,38 @@
+{
+  "name": "rise-distribution-selector",
+  "version": "1.0.0",
+  "authors": [
+    "Rodrigo Serviuc Pavezi <rodrigopavezi@gmail.com>"
+  ],
+  "description": "An element providing a solution to no problem in particular.",
+  "keywords": [
+    "web-component",
+    "web-components",
+    "polymer",
+    "seed"
+  ],
+  "main": "rise-distribution-selector.html",
+  "license": "http://polymer.github.io/LICENSE.txt",
+  "homepage": "https://github.com/Rise-Vision/rise-distribution-selector/",
+  "ignore": [
+    "/.*",
+    "/test/",
+    "/demo/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "google-apis": "GoogleWebComponents/google-apis#^1.0.2",
+    "google-signin": "GoogleWebComponents/google-signin#^1.0.2",
+    "rise-apis": "https://github.com/Rise-Vision/rise-apis.git",
+    "rv-common-style": "https://github.com/Rise-Vision/common-style.git#master",
+    "spin.js": "2.3.1",
+    "underscore": "~1.8.3"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "*"
+  },
+  "resolutions": {
+    "rv-common-style": "master"
+  }
+}

@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>rise-distribution-selector Demo</title>
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <link rel="import" href="../../google-signin/google-signin.html">
+    <link rel="import" href="../rise-distribution-selector.html">
+    <link href="../../rv-common-style/dist/css/rise.min.css" rel="stylesheet" type="text/css">
+
+
+  </head>
+  <body>
+
+    <p>An example of <code>&lt;rise-distribution-selector&gt;</code>:</p>
+
+    <template is="dom-bind">
+      <p> You must signin before running!!</p>
+      <google-signin
+        client-id="1039315471777-oqrb8m2qfkrfp2hv2f9dta5jf72ob72p.apps.googleusercontent.com"
+      </google-signin>
+    </template>
+
+    <div class="container">
+      <div class="form-group">
+        <label class="control-label">Distribution</label>
+        <rise-distribution-selector company-id="f114ad26-949d-44b4-87e9-8528afc76ce4" distribution='["6TYCMBSAKEPG"]' distribute-to-all="false">
+        </rise-distribution-selector>
+      </div>
+    </div>
+
+
+  </body>
+</html>
